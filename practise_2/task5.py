@@ -11,7 +11,7 @@ def get_stat(array):
     stat = dict()
     for column in array.T:
         title = column[0]
-        if all(map(lambda x: x.replace(".", "").isdigit(), column[1:])):
+        if all(map(lambda x: x.replace(".", "").replace(" ", "").isdigit(), column[1:])):
             values = list(map(float, column[1:]))
             stat[title] = {
                 "sum": round(sum(values), 3),
