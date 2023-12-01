@@ -12,7 +12,7 @@ def get_stat(array):
     for column in array.T:
         title = column[0]
         if all(map(lambda x: x.replace(".", "").replace(" ", "").isdigit(), column[1:])):
-            values = list(map(float, column[1:]))
+            values = list(map(lambda x: float(x.replace(" ", "")), column[1:]))
             stat[title] = {
                 "sum": round(sum(values), 3),
                 "avr": round(sum(values) / len(values), 3),
