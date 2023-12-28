@@ -17,31 +17,40 @@ def get_item(file):
         .strip(),
         "title": data.find("h1", {"class": "book-title"}).get_text().strip(),
         "author": data.find("p", {"class": "author-p"}).get_text().strip(),
-        "pages": data.find("span", attrs={"class": "pages"})
-        .get_text()
-        .split(":")[1]
-        .strip(),
-        "year": data.find("span", attrs={"class": "year"})
-        .get_text()
-        .split("в")[1]
-        .strip(),
-        "ISBN": data.find("span", string=re.compile(r"ISBN:"))
-        .get_text()
-        .split(":")[1]
-        .strip(),
+        "pages": int(
+            data.find("span", attrs={"class": "pages"})
+            .get_text()
+            .split(":")[1]
+            .strip()
+            .replace("страниц", "")
+            .strip()
+        ),
+        "year": int(
+            data.find("span", attrs={"class": "year"}).get_text().split("в")[1].strip()
+        ),
+        "ISBN": (
+            data.find("span", string=re.compile(r"ISBN:"))
+            .get_text()
+            .split(":")[1]
+            .strip()
+        ),
         "description": data.find("p", string=re.compile(r"Описание"))
         .get_text()
         .split("Описание")[1]
         .strip(),
         "img_url": data.find("img")["src"],
-        "rating": data.find("span", string=re.compile(r"Рейтинг:"))
-        .get_text()
-        .split(":")[1]
-        .strip(),
-        "views": data.find("span", string=re.compile(r"Просмотры:"))
-        .get_text()
-        .split(":")[1]
-        .strip(),
+        "rating": float(
+            data.find("span", string=re.compile(r"Рейтинг:"))
+            .get_text()
+            .split(":")[1]
+            .strip()
+        ),
+        "views": int(
+            data.find("span", string=re.compile(r"Просмотры:"))
+            .get_text()
+            .split(":")[1]
+            .strip()
+        ),
     }
     return item
 
@@ -51,7 +60,7 @@ def get_stat_from_dicts(list_of_dicts, key):
     title = key
     values = list()
     for item in list_of_dicts:
-        values.append(item[key])
+        values.append(str(item[key]))
     if all(map(lambda x: x.replace(".", "").replace(" ", "").isdigit(), values)):
         values = list(map(lambda x: float(x.replace(" ", "")), values))
         stat[title] = {
@@ -76,7 +85,7 @@ for i in range(1, len(list(folder.iterdir()))):
 items.sort(key=lambda x: float(x["rating"]), reverse=True)
 
 with open("result_1.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 filtered_items = list()
 for item in items:
@@ -84,8 +93,8 @@ for item in items:
         filtered_items.append(item)
 
 with open("result_1_filtered.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 stat = get_stat_from_dicts(items, "rating") | get_stat_from_dicts(items, "genre")
 with open("result_1_stat.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(stat))
+    f.write(json.dumps(stat, ensure_ascii=False))

@@ -13,10 +13,10 @@ def get_item(file):
         "name": data.find("name").get_text().strip(),
         "constellation": data.star.constellation.get_text().strip(),
         "spectral class": data.star.find("spectral-class").get_text().strip(),
-        "radius": data.star.radius.get_text().strip(),
+        "radius": float(data.star.radius.get_text().strip()),
         "rotation": data.star.rotation.get_text().strip().split(" ")[0],
-        "age": data.star.age.get_text().strip().split(" ")[0],
-        "distance": data.star.distance.get_text().strip().split(" ")[0],
+        "age": float(data.star.age.get_text().strip().split(" ")[0]),
+        "distance": float(data.star.distance.get_text().strip().split(" ")[0]),
         "absolute-magnitude": data.star.find("absolute-magnitude")
         .get_text()
         .strip()
@@ -30,7 +30,7 @@ def get_stat_from_dicts(list_of_dicts, key):
     title = key
     values = list()
     for item in list_of_dicts:
-        values.append(item[key])
+        values.append(str(item[key]))
     if all(map(lambda x: x.replace(".", "").replace(" ", "").isdigit(), values)):
         values = list(map(lambda x: float(x.replace(" ", "")), values))
         stat[title] = {
@@ -55,7 +55,7 @@ for i in range(1, len(list(folder.iterdir()))):
 items.sort(key=lambda x: float(x["age"]), reverse=True)
 
 with open("result_3.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 filtered_items = list()
 for item in items:
@@ -63,8 +63,8 @@ for item in items:
         filtered_items.append(item)
 
 with open("result_3_filtered.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 stat = get_stat_from_dicts(items, "age") | get_stat_from_dicts(items, "constellation")
 with open("result_3_stat.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(stat))
+    f.write(json.dumps(stat, ensure_ascii=False))

@@ -51,6 +51,22 @@ def get_products(link) -> list():
         else:
             item["availability"] = "В наличии"
         items.append(item)
+
+    keys = set()
+    for item in items:
+        keys.update(item.keys())
+    for key in keys:
+        items_with_key = filter(lambda x: key in x.keys(), items)
+        if all(
+            map(
+                lambda x: x[key].replace(".", "").replace(" ", "").isdigit(),
+                items_with_key,
+            )
+        ):
+            for item in items:
+                if key in item.keys():
+                    item[key] = float(item[key].replace(" ", ""))
+
     return items
 
 
@@ -64,7 +80,7 @@ def get_stat(
     values = list()
     for item in list_of_dicts:
         if key in item.keys():
-            values.append(item[key])
+            values.append(str(item[key]))
     if all(map(sorter_func, values)):
         values = list(map(lambda x: float(re.sub("[^0-9.]", "", x)), values))
         stat[title] = {
@@ -88,7 +104,7 @@ def get_sorted(list_of_dicts, sorter_key) -> list():
         else:
             rest.append(item)
     sorted_items.sort(
-        key=lambda x: float(re.sub("[^0-9.]", "", x[sorter_key])), reverse=True
+        key=lambda x: float(re.sub("[^0-9.]", "", str(x[sorter_key]))), reverse=True
     )
     sorted_items += rest
     return sorted_items
@@ -118,15 +134,15 @@ for i in range(1, 10):
 
 items = get_sorted(raw_items, "price")
 with open("result_5.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 filtered_items = get_filtered(items, "reviews", "0", False)
 with open("result_5_filtered.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(filtered_items))
+    f.write(json.dumps(filtered_items, ensure_ascii=False))
 
 items_stat = get_stat(items, "price") | get_stat(items, "availability")
 with open("result_5_stat.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items_stat))
+    f.write(json.dumps(items_stat, ensure_ascii=False))
 
 
 def get_product(link) -> list():
@@ -158,24 +174,29 @@ def get_product(link) -> list():
         )
         .get_text()
         .strip(),
-        "price": product.find("span", attrs={"class": "price nowrap"})
-        .get_text()
-        .replace("₽", "")
-        .strip(),
-    }
-    if product.find("span", attrs={"class": "compare-at-price nowrap"}) == None:
-        item["price without discount"] = (
+        "price": float(
             product.find("span", attrs={"class": "price nowrap"})
             .get_text()
             .replace("₽", "")
             .strip()
+            .replace(" ", "")
+        ),
+    }
+    if product.find("span", attrs={"class": "compare-at-price nowrap"}) == None:
+        item["price without discount"] = float(
+            product.find("span", attrs={"class": "price nowrap"})
+            .get_text()
+            .replace("₽", "")
+            .strip()
+            .replace(" ", "")
         )
     else:
-        item["price without discount"] = (
+        item["price without discount"] = float(
             product.find("span", attrs={"class": "compare-at-price nowrap"})
             .get_text()
             .replace("₽", "")
             .strip()
+            .replace(" ", "")
         )
     if product.find("span", attrs={"class": "stock-label stock-high"}) != None:
         item["availability"] = "В наличии"
@@ -205,16 +226,14 @@ for product_link in links[0:100]:
 
 products = get_sorted(products, "Литраж")
 with open("result_5_extended.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(products))
+    f.write(json.dumps(products, ensure_ascii=False))
 
 filtered_products = get_filtered(products, "Цвет", "Черный", True)
 with open("result_5_extended_filtered.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(filtered_items))
+    f.write(json.dumps(filtered_items, ensure_ascii=False))
 
 products_stat = get_stat(products, "Литраж", lambda x: True) | get_stat(
     products, "availability"
 )
 with open("result_5_extended_stat.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(products_stat))
-
-print(products_stat)
+    f.write(json.dumps(products_stat, ensure_ascii=False))

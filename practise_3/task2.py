@@ -13,12 +13,14 @@ def get_products(file):
     items = list()
     for product in products:
         item = {
-            "id": data.a["data-id"].strip(),
+            "id": int(data.a["data-id"].strip()),
             "link": data.find_all("a")[1]["href"].strip(),
             "img_url": data.img["src"].strip(),
             "title": data.span.get_text().strip(),
-            "price": data.price.get_text().replace("₽", "").strip(),
-            "bonus": data.strong.get_text().strip().split(" ")[2],
+            "price": float(
+                data.price.get_text().replace("₽", "").strip().replace(" ", "")
+            ),
+            "bonus": float(data.strong.get_text().strip().split(" ")[2]),
         }
         specifications = product.ul.find_all("li")
         for spec in specifications:
@@ -32,7 +34,7 @@ def get_stat_from_dicts(list_of_dicts, key):
     title = key
     values = list()
     for item in list_of_dicts:
-        values.append(item[key])
+        values.append(str(item[key]))
     if all(map(lambda x: x.replace(".", "").replace(" ", "").isdigit(), values)):
         values = list(map(lambda x: float(x.replace(" ", "")), values))
         stat[title] = {
@@ -57,7 +59,7 @@ for i in range(1, len(list(folder.iterdir())) + 1):
 items.sort(key=lambda x: float(x["id"]), reverse=True)
 
 with open("result_2.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 filtered_items = list()
 for item in items:
@@ -65,8 +67,8 @@ for item in items:
         filtered_items.append(item)
 
 with open("result_2_filtered.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 stat = get_stat_from_dicts(items, "price") | get_stat_from_dicts(items, "title")
 with open("result_2_stat.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(stat))
+    f.write(json.dumps(stat, ensure_ascii=False))

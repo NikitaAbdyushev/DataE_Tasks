@@ -19,6 +19,20 @@ def get_products(file) -> list():
         for property in content:
             item[property.name] = property.get_text().strip()
         items.append(item)
+    keys = set()
+    for item in items:
+        keys.update(item.keys())
+    for key in keys:
+        items_with_key = filter(lambda x: key in x.keys(), items)
+        if all(
+            map(
+                lambda x: x[key].replace(".", "").replace(" ", "").isdigit(),
+                items_with_key,
+            )
+        ):
+            for item in items:
+                if key in item.keys():
+                    item[key] = float(item[key].replace(" ", ""))
     return items
 
 
@@ -28,7 +42,7 @@ def get_stat(list_of_dicts, key) -> dict():
     values = list()
     for item in list_of_dicts:
         if key in item.keys():
-            values.append(item[key])
+            values.append(str(item[key]))
     if all(map(lambda x: x.replace(".", "").replace(" ", "").isdigit(), values)):
         values = list(map(lambda x: float(x.replace(" ", "")), values))
         stat[title] = {
@@ -75,14 +89,14 @@ for i in range(1, len(list(folder.iterdir())) + 1):
 
 items = get_sorted(items, "rating")
 with open("result_4.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(items))
+    f.write(json.dumps(items, ensure_ascii=False))
 
 filtered_items = get_filtered(items, "new", "+")
 with open("result_4_filtered.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(filtered_items))
+    f.write(json.dumps(filtered_items, ensure_ascii=False))
 
 stat = get_stat(items, "price") | get_stat(items, "material")
 with open("result_4_stat.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(stat))
+    f.write(json.dumps(stat, ensure_ascii=False))
 
 print(stat)
